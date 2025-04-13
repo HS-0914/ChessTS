@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+/* ----------------------------------------
+1. 전체 색상/테마 설정
+---------------------------------------- */
+:root {
+  --chess-brown: #b58863; /* 짙은 갈색 */
+  --chess-beige: #f0d9b5; /* 밝은 베이지 */
+
+  font-family: "Noto Sans KR", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* color-scheme: light dark; 다크모드? */
+  background-color: var(--chess-brown);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  /* display: flex;
+  place-items: center; */
+}
+
+.board {
+  max-width: 500px;
+  margin: auto; /* 가운데 정렬 */
+}
+
+.chess-section {
+  background-color: var(--chess-brown);
+  padding: 2rem 1rem;
+}
+
+.section-card {
+  background-color: #f0d9b5;
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* ----------------------------------------
+2. 상단 네비게이션 바 (체스닷컴 스타일 참고)
+---------------------------------------- */
+.navbar-chess {
+  background-color: var(--chess-brown);
+  padding: 0.5rem 1rem;
+}
+.navbar-chess .navbar-brand {
+  color: #fff;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+.navbar-chess .navbar-brand img {
+  height: 40px;
+  margin-right: 8px;
+}
+.navbar-chess .nav-link {
+  color: #fff !important;
+}
+.navbar-chess .btn-outline-light {
+  margin-left: 8px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
