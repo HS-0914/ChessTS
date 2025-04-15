@@ -33,6 +33,19 @@ body {
   padding: 2rem 1rem;
 }
 
+.chess-section h2 {
+  font-size: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  color: #5c4033;
+}
+.chess-section p {
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  color: #3d2b1f;
+}
+
 .section-card {
   background-color: #f0d9b5;
   border: none;

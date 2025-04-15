@@ -1,5 +1,7 @@
 import "./App.css";
 import MyBoard from "./components/MyBoard";
+import PuzzleBoard from "./components/PuzzleBoard";
+import RandomBoard from "./components/RandomBoard";
 
 function App() {
   return (
@@ -10,7 +12,9 @@ function App() {
           ChessTS
         </a>
       </nav>
+      <RandomBoard></RandomBoard>
       <MyBoard></MyBoard>
+      <PuzzleBoard></PuzzleBoard>
     </>
   );
 }
