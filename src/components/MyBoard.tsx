@@ -1,16 +1,50 @@
+import { Chessboard } from "react-chessboard";
 import ChessSection from "./ChessSection";
+import { Chess, DEFAULT_POSITION } from "chess.js";
+import { useEffect, useRef, useState } from "react";
+import { Piece, Square } from "react-chessboard/dist/chessboard/types";
 
 function MyBoard() {
+  const [game, setGame] = useState(new Chess());
+  const [clicked, setClicked] = useState({});
+  const [clickedSquare, setClickedSquare] = useState({});
+  const hasRun = useRef(false);
+  useEffect(() => {
+    if (!hasRun.current) {
+      hasRun.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log(clicked);
+  }, [clicked]);
+
+  function onSquareClick(square: Square, piece: Piece | undefined) {
+    const newSquares: { [key: string]: { background: string } } = {};
+    newSquares[square] = {
+      background: "rgba(255, 255, 0, 0.4)",
+    };
+    setClickedSquare(newSquares);
+    setClicked({
+      square,
+      piece,
+    });
+  }
+
   return (
     <ChessSection>
       <h2>🆚 AI와 1:1 체스 게임</h2>
 
       {/* 체스판 컨테이너 */}
-      <div
+      <Chessboard
         id="myBoard"
-        className="board"
-        style={{ paddingTop: "1.5rem" }}
-      ></div>
+        position={DEFAULT_POSITION}
+        onSquareClick={onSquareClick}
+        customSquareStyles={{
+          ...clickedSquare,
+        }}
+      ></Chessboard>
+
       {/* 컨트롤 패널 */}
       <div className="">
         <div className="">

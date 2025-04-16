@@ -4,18 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Chess } from "chess.js";
 function RandomBoard() {
   const [game, setGame] = useState(new Chess());
-
-  const randomChess = () => {
-    const possibleMoves = game.moves();
-
-    // exit if the game is over
-    if (game.isGameOver() || possibleMoves.length === 0) return;
-    const randomIdx = Math.floor(Math.random() * possibleMoves.length);
-    game.move(possibleMoves[randomIdx]);
-    setGame(new Chess(game.fen()));
-    setTimeout(() => randomChess(), 2000);
-  };
-
   // useRef가 뭘까
   const hasRun = useRef(false);
   useEffect(() => {
@@ -24,6 +12,25 @@ function RandomBoard() {
       randomChess();
     }
   }, []);
+
+  const randomChess = () => {
+    const possibleMoves = game.moves();
+
+    // exit if the game is over
+    if (game.isGameOver() || possibleMoves.length === 0) {
+      setGame(new Chess());
+    } else {
+      const randomIdx = Math.floor(Math.random() * possibleMoves.length);
+      game.move(possibleMoves[randomIdx]);
+      setGame(new Chess(game.fen()));
+    }
+    setTimeout(() => randomChess(), 2000);
+  };
+
+  function isDraggable(id: string) {
+    if (id === "randomBoard") return false;
+    return true;
+  }
 
   return (
     <ChessSection>
@@ -40,7 +47,11 @@ function RandomBoard() {
       {/* <!-- 체스판 컨테이너 --> */}
 
       <div className="board">
-        <Chessboard id="aiBoard" position={game.fen()}></Chessboard>
+        <Chessboard
+          id="randomBoard"
+          position={game.fen()}
+          isDraggablePiece={() => isDraggable("randomBoard")}
+        ></Chessboard>
       </div>
       {/* <!-- 추가적으로 체스 퍼즐, 레슨 등 다른 버튼을 넣어도 됩니다. --> */}
       <button

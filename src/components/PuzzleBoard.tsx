@@ -1,4 +1,6 @@
+import { Chessboard } from "react-chessboard";
 import ChessSection from "./ChessSection";
+import { DEFAULT_POSITION } from "chess.js";
 
 function PuzzleBoard() {
   return (
@@ -18,7 +20,7 @@ function PuzzleBoard() {
         </a>
       </div>
       {/* 체스판 컨테이너 */}
-      <div id="puzzleBoard" className="board"></div>
+      <Chessboard id="puzzleBoard" position={DEFAULT_POSITION}></Chessboard>
       <button
         className="bg-emerald-600 text-white text-lg py-2 px-4 rounded-md mt-3 mb-3 hover:bg-emerald-700 transition"
         id="reloadPuzzle"
