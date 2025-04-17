@@ -1,13 +1,14 @@
 import { Chessboard } from "react-chessboard";
 import ChessSection from "./ChessSection";
-import { Chess, DEFAULT_POSITION } from "chess.js";
+import { Chess, DEFAULT_POSITION, Move } from "chess.js";
 import { useEffect, useRef, useState } from "react";
 import { Piece, Square } from "react-chessboard/dist/chessboard/types";
 
 function MyBoard() {
   const [game, setGame] = useState(new Chess());
-  const [clicked, setClicked] = useState({});
-  const [clickedSquare, setClickedSquare] = useState({});
+  const [clickedSquare, setClickedSquare] = useState<Square | null>(null);
+  const [moves, setMoves] = useState<Move[]>([]);
+  const [focusSquare, setFocusSquare] = useState({});
   const hasRun = useRef(false);
   useEffect(() => {
     if (!hasRun.current) {
@@ -16,19 +17,58 @@ function MyBoard() {
   }, []);
 
   useEffect(() => {
-    console.log(clicked);
-  }, [clicked]);
+    // console.log(clickedSquare);
+  }, [focusSquare]);
 
   function onSquareClick(square: Square, piece: Piece | undefined) {
-    const newSquares: { [key: string]: { background: string } } = {};
-    newSquares[square] = {
+    if (piece) {
+      colorSquares(square);
+      setClickedSquare(square);
+    }
+    // moves 활용해서 이동 완성하기
+  }
+
+  function colorSquares(square: Square) {
+    const colors: { [key: string]: { background: string } } = {};
+    const possibleMoves = game.moves({ square, verbose: true });
+    setMoves(possibleMoves);
+    console.log(possibleMoves);
+    for (const square of possibleMoves) {
+      if (
+        game.get(square.to) &&
+        game.get(square.to)?.color !== game.get(square.from)?.color
+      ) {
+        colors[square.to] = {
+          background:
+            "radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)",
+        };
+      } else {
+        colors[square.to] = {
+          background:
+            "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
+        };
+      }
+    }
+
+    colors[square] = {
       background: "rgba(255, 255, 0, 0.4)",
     };
-    setClickedSquare(newSquares);
-    setClicked({
-      square,
-      piece,
-    });
+
+    setFocusSquare(colors);
+  }
+
+  function isDraggablePiece({ piece }: { piece: Piece }) {
+    if (game.turn() === "b" || piece.startsWith("b")) return false;
+    return true;
+  }
+
+  function onPieceDragBegin(_piece: Piece, sourceSquare: Square) {
+    colorSquares(sourceSquare);
+    setClickedSquare(sourceSquare);
+  }
+
+  function onPieceDragEnd() {
+    console.log("DragEnd");
   }
 
   return (
@@ -36,15 +76,19 @@ function MyBoard() {
       <h2>🆚 AI와 1:1 체스 게임</h2>
 
       {/* 체스판 컨테이너 */}
-      <Chessboard
-        id="myBoard"
-        position={DEFAULT_POSITION}
-        onSquareClick={onSquareClick}
-        customSquareStyles={{
-          ...clickedSquare,
-        }}
-      ></Chessboard>
-
+      <div className="board">
+        <Chessboard
+          id="myBoard"
+          position={DEFAULT_POSITION}
+          onSquareClick={onSquareClick}
+          onPieceDragBegin={onPieceDragBegin}
+          onPieceDragEnd={onPieceDragEnd}
+          isDraggablePiece={isDraggablePiece}
+          customSquareStyles={{
+            ...focusSquare,
+          }}
+        ></Chessboard>
+      </div>
       {/* 컨트롤 패널 */}
       <div className="">
         <div className="">

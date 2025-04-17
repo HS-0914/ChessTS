@@ -20,7 +20,10 @@ function PuzzleBoard() {
         </a>
       </div>
       {/* 체스판 컨테이너 */}
-      <Chessboard id="puzzleBoard" position={DEFAULT_POSITION}></Chessboard>
+      <div className="board">
+        <Chessboard id="puzzleBoard" position={DEFAULT_POSITION}></Chessboard>
+      </div>
+
       <button
         className="bg-emerald-600 text-white text-lg py-2 px-4 rounded-md mt-3 mb-3 hover:bg-emerald-700 transition"
         id="reloadPuzzle"
