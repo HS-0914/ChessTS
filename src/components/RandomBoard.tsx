@@ -51,22 +51,28 @@ function RandomBoard() {
         <Chessboard
           id="randomBoard"
           position={game.fen()}
+          customBoardStyle={{
+            borderRadius: "4px",
+            boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.5)",
+          }}
           isDraggablePiece={() => isDraggablePiece("randomBoard")}
         ></Chessboard>
       </div>
       {/* <!-- 추가적으로 체스 퍼즐, 레슨 등 다른 버튼을 넣어도 됩니다. --> */}
-      <button
-        className="bg-blue-600 text-white text-lg py-2 px-4 rounded-md mt-3 mb-3 hover:bg-blue-700 transition"
-        id="puzzleBtn"
-      >
-        지금 도전하기
-      </button>
-      <button
-        id="puzzleBtn"
-        className="bg-gray-900 text-white text-lg py-2 px-4 rounded-md mt-3 mb-3 ml-1.5 hover:bg-gray-700 transition"
-      >
-        체스퍼즐 풀기
-      </button>
+      <div className="mt-6 mb-3 text-white text-lg">
+        <button
+          className="bg-blue-600 py-2 px-4 rounded-md hover:bg-blue-700"
+          id="puzzleBtn"
+        >
+          지금 도전하기
+        </button>
+        <button
+          id="puzzleBtn"
+          className="bg-gray-900 py-2 px-4 rounded-md ml-1.5 hover:bg-gray-700"
+        >
+          체스퍼즐 풀기
+        </button>
+      </div>
     </ChessSection>
   );
 }

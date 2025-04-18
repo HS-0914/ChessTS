@@ -21,21 +21,29 @@ function PuzzleBoard() {
       </div>
       {/* 체스판 컨테이너 */}
       <div className="board">
-        <Chessboard id="puzzleBoard" position={DEFAULT_POSITION}></Chessboard>
+        <Chessboard
+          id="puzzleBoard"
+          position={DEFAULT_POSITION}
+          customBoardStyle={{
+            borderRadius: "4px",
+            boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.5)",
+          }}
+        ></Chessboard>
       </div>
-
-      <button
-        className="bg-emerald-600 text-white text-lg py-2 px-4 rounded-md mt-3 mb-3 hover:bg-emerald-700 transition"
-        id="reloadPuzzle"
-      >
-        다른 퍼즐 보기
-      </button>
-      <button
-        className="bg-gray-500 text-white text-lg py-2 px-4 rounded-md mt-3 mb-3 ml-1.5 hover:bg-gray-600 transition"
-        id="checkPuzzle"
-      >
-        정답 확인
-      </button>
+      <div className="mt-6 mb-3 text-white text-lg">
+        <button
+          className="bg-emerald-600 py-2 px-4 rounded-md hover:bg-emerald-700"
+          id="reloadPuzzle"
+        >
+          다른 퍼즐 보기
+        </button>
+        <button
+          className="bg-gray-500 py-2 px-4 rounded-md ml-1.5 hover:bg-gray-600"
+          id="checkPuzzle"
+        >
+          정답 확인
+        </button>
+      </div>
       <p className="card-text text-muted" style={{ fontSize: "0.95rem" }}>
         퍼즐은 요청할 때마다 즉시 바뀌지 않으며, 약
         <strong>15초 정도의 대기 시간</strong>이 있을 수 있습니다.
