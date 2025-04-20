@@ -30,7 +30,6 @@ function PuzzleBoard() {
   const hasRun = useRef(false);
   useEffect(() => {
     if (!hasRun.current) {
-      console.log("run");
       hasRun.current = true;
       loadPuzzle();
     }
