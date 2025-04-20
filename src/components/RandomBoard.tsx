@@ -4,13 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { Chess, DEFAULT_POSITION } from "chess.js";
 function RandomBoard() {
   const [game, setGame] = useState(new Chess());
-  // useRef가 뭘까
   const hasRun = useRef(false);
   useEffect(() => {
+    // dev 환경
     if (!hasRun.current) {
       hasRun.current = true;
       randomChess();
     }
+    // prod 환경
+    // randomChess();
   }, []);
 
   const randomChess = () => {
@@ -32,6 +34,10 @@ function RandomBoard() {
     if (id === "randomBoard") return false;
     return true;
   }
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <ChessSection>
@@ -63,12 +69,14 @@ function RandomBoard() {
         <button
           className="bg-blue-600 py-2 px-4 rounded-md hover:bg-blue-700"
           id="puzzleBtn"
+          onClick={() => scrollTo("myBoard")}
         >
           지금 도전하기
         </button>
         <button
           id="puzzleBtn"
           className="bg-gray-900 py-2 px-4 rounded-md ml-1.5 hover:bg-gray-700"
+          onClick={() => scrollTo("puzzleBoard")}
         >
           체스퍼즐 풀기
         </button>
