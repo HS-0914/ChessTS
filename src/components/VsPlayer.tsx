@@ -18,9 +18,13 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   const savedGames = useRef<string[]>(
     JSON.parse(localStorage.getItem("vsPlayer") ?? "[]")
   );
-  const playerName = useRef<string>(localStorage.getItem("player") ?? "익명1");
+  const playerName = useRef<string>(
+    localStorage.getItem("player") ?? `익명-${socket.id}`
+  );
   const game = useRef(new Chess());
-  const [myColor, setMyColor] = useState<Color>("w");
+  const myColor = useRef<string>(
+    sessionStorage.getItem(`color-${roomId}`) || null
+  );
 
   const [fen, setFen] = useState(game.current.fen());
   const [fromSquare, setFromSquare] = useState<Square | null>(null);
@@ -33,21 +37,18 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
 
   const hasRun = useRef(false);
   useEffect(() => {
-    if (!hasRun.current) {
-      hasRun.current = true;
+    if (hasRun.current) return;
+    hasRun.current = true;
+    // 초기 소켓, 방 설정
+    initSocket();
 
-      // 초기 헤더 설정
-      game.current.setHeader("Event", "vsPlayer");
-      game.current.setHeader("Site", "ChessTS");
-      game.current.setHeader("Date", getCurrentDate());
-      game.current.setHeader("Round", `${savedGames.current.length + 1}`);
-      game.current.setHeader("White", playerName.current);
-      game.current.setHeader("black", "익명2");
-      console.log(game.current.pgn());
-
-      initSocket();
-    }
-  }, [roomId, socket]);
+    // 초기 헤더 설정
+    game.current.setHeader("Event", "vsPlayer");
+    game.current.setHeader("Site", "ChessTS");
+    game.current.setHeader("Date", getCurrentDate());
+    game.current.setHeader("Round", `${savedGames.current.length + 1}`);
+    console.log(game.current.pgn());
+  }, []);
 
   useEffect(() => {
     if (fromSquare && toSquare) {
@@ -96,17 +97,15 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
 
   function initSocket() {
     // 방 입장
-    console.log("roomId : ", roomId);
     socket.emit("join", roomId);
 
     // pgn 로드
-    socket.on("initGame", ({ pgn }) => {
+    socket.on("initGame", (pgn: string) => {
       try {
         game.current.loadPgn(pgn);
         setTimeout(() => {
           setFen(game.current.fen());
-        }, 100);
-        console.log("♻️ 서버에서 수순 복원:", pgn);
+        }, 1000);
       } catch (err) {
         console.error("PGN 로드 실패:", err);
       }
@@ -114,12 +113,17 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
 
     // color 확인
     socket.on("assignColor", (color: Color) => {
-      setMyColor(color);
+      if (myColor.current) return;
       console.log("🎨 내 색:", color);
+      myColor.current = color;
+      sessionStorage.setItem(`color-${roomId}`, myColor.current);
+      myColor.current && myColor.current === "w"
+        ? game.current.setHeader("White", playerName.current)
+        : game.current.setHeader("Black", playerName.current);
     });
 
     // 상대 수 수신
-    socket.on("move", (san) => {
+    socket.on("move", (san: string) => {
       console.log("📩 상대 수 수신", san);
       try {
         game.current.move(san);
@@ -141,7 +145,6 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   // 기물 이동 요청
   function sendMove(san: string) {
     const pgn = game.current.pgn();
-    console.log(pgn);
     socket.emit("move", {
       roomId: roomId,
       san,
@@ -151,6 +154,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
 
   // 방 나가기
   function leaveRoom() {
+    game.current = new Chess();
     socket.emit("leave", roomId);
     onLeave();
   }
@@ -243,7 +247,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   /** board 함수============================================================================= */
 
   function onSquareClick(square: Square, piece: Piece | undefined) {
-    if (game.current.turn() !== myColor) return;
+    if (game.current.turn() !== myColor.current) return;
     const colors: { [key: string]: { background: string } } = {};
     colors[square] = { background: "rgba(255, 255, 0, 0.4)" };
     if (piece && !fromSquare) {
@@ -304,7 +308,10 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   }
 
   function isDraggablePiece({ piece }: { piece: Piece }) {
-    return game.current.turn() === myColor && piece.startsWith(myColor);
+    return (
+      game.current.turn() === myColor.current &&
+      piece.startsWith(myColor.current)
+    );
     /*
     if (
       (game.current.turn() === "b" && piece.startsWith("w")) ||
@@ -364,7 +371,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
           onPromotionPieceSelect={onPromotionPieceSelect}
           showPromotionDialog={showPromotionDialog}
           promotionToSquare={toSquare}
-          boardOrientation={myColor === "w" ? "white" : "black"}
+          boardOrientation={myColor.current === "w" ? "white" : "black"}
           customBoardStyle={{
             borderRadius: "4px",
             boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.5)",

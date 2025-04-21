@@ -20,7 +20,6 @@ io.on("connection", (socket) => {
   // 방 목록 가져오기
   socket.on("getRooms", () => {
     const availableRooms = Object.keys(roomInfo);
-    console.log("availableRooms : ", availableRooms);
     // const availableRooms = Object.keys(roomInfo).filter(
     //   (roomId) => roomInfo[roomId].length < 2
     // );
@@ -38,13 +37,14 @@ io.on("connection", (socket) => {
     socket.emit("assignColor", color);
     if (roomPGN[roomId]) {
       console.log(roomPGN[roomId]);
-      socket.emit("initGame", { pgn: roomPGN[roomId] });
+      socket.emit("initGame", roomPGN[roomId]);
     }
   });
 
   // 기물 움직이기
   socket.on("move", ({ roomId, san, pgn }) => {
     roomPGN[roomId] = pgn; // 최신 pgn 저장
+    console.log(roomPGN[roomId]);
     socket.to(roomId).emit("move", san);
   });
 
@@ -56,6 +56,9 @@ io.on("connection", (socket) => {
       if (roomInfo[roomId].length === 0) {
         delete roomInfo[roomId]; // 방 완전히 삭제
         delete roomPGN[roomId]; // ✅ PGN도 함께 제거
+        console.log("roomInfo");
+        console.log(roomInfo);
+        console.log(roomPGN);
         socket.broadcast.emit("delete", roomId);
       }
     }

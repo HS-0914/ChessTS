@@ -19,7 +19,13 @@ function MyBoard() {
     const newSocket = io("http://localhost:3000");
     setSocket(newSocket);
 
+    newSocket.on("delete", (roomId: string) => {
+      console.log("??");
+      sessionStorage.removeItem(`color-${roomId}`);
+    });
+
     return () => {
+      newSocket.off("delete");
       newSocket.disconnect(); // 정리
     };
   }, []);

@@ -15,20 +15,19 @@ function RoomList({ socket, onJoin }: RoomListProps) {
     socket.emit("getRooms");
 
     socket.on("roomList", (roomList: string[]) => {
-      console.log("roomList : ", roomList);
       setRooms(roomList);
     });
 
     socket.on("delete", (roomId: string) => {
       const remainRooms = rooms.filter((room) => room !== roomId);
+      sessionStorage.removeItem(`color-${roomId}`);
       setRooms(remainRooms);
     });
 
     return () => {
       socket.off("roomList");
-      socket.off("delete");
     };
-  }, [socket]);
+  }, []);
 
   const createRoom = () => {
     if (newRoomName.trim()) {
