@@ -10,7 +10,7 @@ import {
 } from "react-chessboard/dist/chessboard/types";
 
 function PuzzleBoard() {
-  let sessionFen = sessionStorage.getItem("fen") ?? DEFAULT_POSITION;
+  const sessionFen = sessionStorage.getItem("fen") ?? DEFAULT_POSITION;
   const game = useRef(new Chess(sessionFen));
   const [puzzleFen, setPuzzleFen] = useState(game.current.fen());
   const [puzzleTitle, setPuzzleTitle] = useState("title");

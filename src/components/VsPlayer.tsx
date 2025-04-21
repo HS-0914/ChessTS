@@ -1,18 +1,27 @@
 import { Chessboard } from "react-chessboard";
-import { Chess, Move } from "chess.js";
+import { Chess, Color, Move } from "chess.js";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import {
   Piece,
   PromotionPieceOption,
   Square,
 } from "react-chessboard/dist/chessboard/types";
-import { io, Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
 
-function VsPlayer() {
+type VsPlayerProps = {
+  socket: Socket;
+  roomId: string;
+  onLeave: () => void;
+};
+
+function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   const savedGames = useRef<string[]>(
     JSON.parse(localStorage.getItem("vsPlayer") ?? "[]")
   );
+  const playerName = useRef<string>(localStorage.getItem("player") ?? "익명1");
   const game = useRef(new Chess());
+  const [myColor, setMyColor] = useState<Color>("w");
+
   const [fen, setFen] = useState(game.current.fen());
   const [fromSquare, setFromSquare] = useState<Square | null>(null);
   const [toSquare, setToSquare] = useState<Square | null>(null);
@@ -21,9 +30,6 @@ function VsPlayer() {
   const [depth, setDepth] = useState(1);
   const [maxThinkingTime, setMaxThinkingTime] = useState(1);
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
-
-  // socket io
-  const socket = useRef<Socket | null>(null);
 
   const hasRun = useRef(false);
   useEffect(() => {
@@ -35,28 +41,13 @@ function VsPlayer() {
       game.current.setHeader("Site", "ChessTS");
       game.current.setHeader("Date", getCurrentDate());
       game.current.setHeader("Round", `${savedGames.current.length + 1}`);
-      game.current.setHeader("White", "익명1");
+      game.current.setHeader("White", playerName.current);
       game.current.setHeader("black", "익명2");
       console.log(game.current.pgn());
 
-      // 소켓 연결
-      socket.current = io("http://localhost:3000");
-
-      // 상대 수 수신
-      socket.current.on("move", ({ san }) => {
-        console.log("📩 상대 수신", san);
-        try {
-          game.current.move(san);
-          setFen(game.current.fen());
-          checkWin();
-        } catch (e) {
-          console.error("상대 수 에러", e);
-        }
-      });
-
-      console.log("✅ 소켓 연결 완료");
+      initSocket();
     }
-  }, []);
+  }, [roomId, socket]);
 
   useEffect(() => {
     if (fromSquare && toSquare) {
@@ -103,10 +94,65 @@ function VsPlayer() {
 
   /** socket io 함수 ============================================================================= */
 
-  function sendMove(san: string) {
-    socket.current?.emit("move", {
-      san,
+  function initSocket() {
+    // 방 입장
+    console.log("roomId : ", roomId);
+    socket.emit("join", roomId);
+
+    // pgn 로드
+    socket.on("initGame", ({ pgn }) => {
+      try {
+        game.current.loadPgn(pgn);
+        setTimeout(() => {
+          setFen(game.current.fen());
+        }, 100);
+        console.log("♻️ 서버에서 수순 복원:", pgn);
+      } catch (err) {
+        console.error("PGN 로드 실패:", err);
+      }
     });
+
+    // color 확인
+    socket.on("assignColor", (color: Color) => {
+      setMyColor(color);
+      console.log("🎨 내 색:", color);
+    });
+
+    // 상대 수 수신
+    socket.on("move", (san) => {
+      console.log("📩 상대 수 수신", san);
+      try {
+        game.current.move(san);
+        setFen(game.current.fen());
+        checkWin();
+      } catch (e) {
+        console.error("상대 수 에러", e);
+      }
+    });
+
+    console.log("✅ 소켓 연결 완료");
+    return () => {
+      socket.off("assignColor");
+      socket.off("move");
+      socket.off("initGame");
+    };
+  }
+
+  // 기물 이동 요청
+  function sendMove(san: string) {
+    const pgn = game.current.pgn();
+    console.log(pgn);
+    socket.emit("move", {
+      roomId: roomId,
+      san,
+      pgn,
+    });
+  }
+
+  // 방 나가기
+  function leaveRoom() {
+    socket.emit("leave", roomId);
+    onLeave();
   }
 
   /** 이벤트 처리 함수 =========================================================================== */
@@ -142,6 +188,7 @@ function VsPlayer() {
   };
 
   const handleUndo = () => {
+    // sendUndoReq();
     game.current.undo();
     game.current.undo();
     setFen(game.current.fen()); // 다시 그려지게
@@ -196,6 +243,7 @@ function VsPlayer() {
   /** board 함수============================================================================= */
 
   function onSquareClick(square: Square, piece: Piece | undefined) {
+    if (game.current.turn() !== myColor) return;
     const colors: { [key: string]: { background: string } } = {};
     colors[square] = { background: "rgba(255, 255, 0, 0.4)" };
     if (piece && !fromSquare) {
@@ -256,12 +304,15 @@ function VsPlayer() {
   }
 
   function isDraggablePiece({ piece }: { piece: Piece }) {
+    return game.current.turn() === myColor && piece.startsWith(myColor);
+    /*
     if (
       (game.current.turn() === "b" && piece.startsWith("w")) ||
       (game.current.turn() === "w" && piece.startsWith("b"))
     )
-      return false;
+    return false;
     return true;
+    */
   }
 
   function onMouseOverSquare(square: Square) {
@@ -313,6 +364,7 @@ function VsPlayer() {
           onPromotionPieceSelect={onPromotionPieceSelect}
           showPromotionDialog={showPromotionDialog}
           promotionToSquare={toSquare}
+          boardOrientation={myColor === "w" ? "white" : "black"}
           customBoardStyle={{
             borderRadius: "4px",
             boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.5)",
@@ -338,20 +390,13 @@ function VsPlayer() {
             onChange={handleChange}
             onInput={handleInput}
           />
-          <label htmlFor="thinkingTime" style={{ color: "#7a5c3b" }}>
-            Max Thinking Time (ms):
-          </label>
-          <input
-            type="number"
-            id="thinkingTime2"
-            value={maxThinkingTime}
-            min="1"
-            max="100"
-            onChange={handleChange}
-            onInput={handleInput}
-          />
           <button
-            id="undoBtn2"
+            onClick={leaveRoom}
+            className="bg-red-500 hover:bg-red-700 text-white text-md py-2 px-4 rounded-md"
+          >
+            🔙 방 나가기
+          </button>
+          <button
             className="bg-amber-400 text-white text-md py-2 px-4 rounded-md hover:bg-amber-600"
             onClick={handleUndo}
           >

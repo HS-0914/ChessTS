@@ -17,7 +17,6 @@ function RandomBoard() {
 
   const randomChess = () => {
     const possibleMoves = game.moves();
-    // console.log(game.)
 
     // exit if the game is over
     if (game.isGameOver() || possibleMoves.length === 0) {

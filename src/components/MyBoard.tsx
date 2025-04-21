@@ -2,17 +2,27 @@ import { useEffect, useRef, useState } from "react";
 import ChessSection from "./ChessSection";
 import VsCom from "./VsCom";
 import VsPlayer from "./VsPlayer";
+import RoomList from "./RoomList";
+import { io, Socket } from "socket.io-client";
 
 function MyBoard() {
+  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
+
   const [activeTab, setActiveTab] = useState(0);
   const tabNames = ["vsCom", "vsPlayer", "log"];
 
   // 각각의 컴포넌트를 한 번만 생성
   const vsCom = useRef(<VsCom />);
-  const vsPlayer = useRef(<VsPlayer />);
-  // const gameLogs = useRef(<VsCom />);
-  // const vsPlayer = useRef(<VsPlayer />);
-  // const gameLogs = useRef(<GameLogs />);
+
+  useEffect(() => {
+    const newSocket = io("http://localhost:3000");
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect(); // 정리
+    };
+  }, []);
 
   useEffect(() => {
     // 탭 전환 시 window에 resize 이벤트를 강제로 발생시킴
@@ -20,7 +30,7 @@ function MyBoard() {
       window.dispatchEvent(new Event("resize"));
     }, 50);
   }, [activeTab]);
-
+  if (!socket) return null;
   return (
     <div id="myBoard">
       <ChessSection>
@@ -56,7 +66,18 @@ function MyBoard() {
             height: activeTab === 1 ? "auto" : 0,
           }}
         >
-          {vsPlayer.current}
+          {selectedRoom ? (
+            <VsPlayer
+              socket={socket}
+              roomId={selectedRoom}
+              onLeave={() => setSelectedRoom(null)}
+            />
+          ) : (
+            <RoomList
+              socket={socket}
+              onJoin={(roomId) => setSelectedRoom(roomId)}
+            />
+          )}
         </div>
         <div style={{ display: activeTab === 2 ? "block" : "none" }}>
           {/* <VsCom /> */}
