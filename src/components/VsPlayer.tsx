@@ -33,6 +33,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   const [possibleSquares, setPossibleSquares] = useState({});
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [undoing, setUndoing] = useState(false);
+  const undoingRef = useRef(false);
 
   const hasRun = useRef(false);
   useEffect(() => {
@@ -46,7 +47,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
     game.current.setHeader("Site", "ChessTS");
     game.current.setHeader("Date", getCurrentDate());
     game.current.setHeader("Round", `${savedGames.current.length + 1}`);
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     if (fromSquare && toSquare) {
@@ -132,6 +133,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
 
     // 되돌리기 수신 시시
     socket.on("undoRequest", () => {
+      console.log("✅ undoAccept 이벤트 수신");
       const accept = confirm(
         "상대가 되돌리기를 요청했습니다. 수락하시겠습니까?"
       );
@@ -145,22 +147,28 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
 
     // 되돌리기 수락
     socket.on("undoAccept", () => {
+      console.log("✅ undoAccept 이벤트 수신");
       handleUndo(); // 나도 되돌리기
       setUndoing(false);
+      undoingRef.current = false;
       alert("상대가 되돌리기를 수락했습니다.");
     });
 
     // 되돌리기 거절
     socket.on("undoReject", () => {
       setUndoing(false);
+      undoingRef.current = false;
       alert("상대가 되돌리기를 거절했습니다.");
     });
 
     console.log("✅ 소켓 연결 완료");
     return () => {
+      socket.off("initGame");
       socket.off("assignColor");
       socket.off("move");
-      socket.off("initGame");
+      socket.off("undoRequest");
+      socket.off("undoAccept");
+      socket.off("undoReject");
     };
   }
 
@@ -190,6 +198,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   /** 이벤트 처리 함수 =========================================================================== */
 
   function sendUndoRequest() {
+    undoingRef.current = true;
     setUndoing(true);
     socket.emit("undoRequest", roomId);
   }
@@ -242,18 +251,14 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
 
   function saveLog() {
     const pgn = game.current.pgn();
-    console.log("savedGames.current : ", savedGames.current);
     savedGames.current.push(pgn);
-    localStorage.setItem("vsPlayer", JSON.stringify(savedGames));
-    console.log(pgn);
+    localStorage.setItem("vsPlayer", JSON.stringify(savedGames.current));
   }
 
   /** board 함수============================================================================= */
 
   function onSquareClick(square: Square, piece: Piece | undefined) {
-    console.log("undoing", undoing);
-
-    if (!undoing && game.current.turn() !== myColor.current) return;
+    if (undoingRef.current || game.current.turn() !== myColor.current) return;
     const colors: { [key: string]: { background: string } } = {};
     colors[square] = { background: "rgba(255, 255, 0, 0.4)" };
     if (piece && !fromSquare) {
@@ -313,9 +318,8 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   }
 
   function isDraggablePiece({ piece }: { piece: Piece }) {
-    console.log("undoing", undoing);
     return (
-      !undoing &&
+      !undoingRef.current &&
       game.current.turn() === myColor.current &&
       piece.startsWith(myColor.current)
     );

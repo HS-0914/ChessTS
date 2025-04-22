@@ -27,6 +27,7 @@ function RoomList({ socket, onJoin }: RoomListProps) {
 
     return () => {
       socket.off("roomList");
+      socket.off("delete");
     };
   }, []);
 
@@ -57,7 +58,7 @@ function RoomList({ socket, onJoin }: RoomListProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">🏠 방 입장 또는 생성</h2>
+      <h2 className="text-xl font-semibold mb-4 mt-0!">🏠 방 입장 또는 생성</h2>
 
       {/* 방 이름 입력 */}
       <input

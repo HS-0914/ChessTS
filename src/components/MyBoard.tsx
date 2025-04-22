@@ -4,6 +4,7 @@ import VsCom from "./VsCom";
 import VsPlayer from "./VsPlayer";
 import RoomList from "./RoomList";
 import { io, Socket } from "socket.io-client";
+import LogViewer from "./LogViewer";
 
 function MyBoard() {
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
@@ -16,8 +17,8 @@ function MyBoard() {
   const vsCom = useRef(<VsCom />);
 
   useEffect(() => {
-    // const newSocket = io("http://localhost:3000");
-    const newSocket = io("http://192.168.0.20:3000");
+    const newSocket = io("http://localhost:3000");
+    // const newSocket = io("http://192.168.0.20:3000");
     setSocket(newSocket);
 
     newSocket.on("deleteColor", (roomId: string) => {
@@ -86,7 +87,7 @@ function MyBoard() {
           )}
         </div>
         <div style={{ display: activeTab === 2 ? "block" : "none" }}>
-          {/* <VsCom /> */}
+          <LogViewer />
         </div>
       </ChessSection>
     </div>

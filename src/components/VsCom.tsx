@@ -21,6 +21,7 @@ function VsCom() {
   const [depth, setDepth] = useState(1);
   const [maxThinkingTime, setMaxThinkingTime] = useState(1);
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
+  const playerName = useRef<string>(localStorage.getItem("player") ?? `익명`);
 
   const hasRun = useRef(false);
   useEffect(() => {
@@ -30,8 +31,8 @@ function VsCom() {
       game.current.setHeader("Site", "ChessTS");
       game.current.setHeader("Date", getCurrentDate());
       game.current.setHeader("Round", `${savedGames.current.length + 1}`);
-      game.current.setHeader("White", "익명");
-      game.current.setHeader("black", "Com");
+      game.current.setHeader("White", playerName.current);
+      game.current.setHeader("Black", "Com");
       console.log(game.current.pgn());
     }
   }, []);
@@ -109,7 +110,7 @@ function VsCom() {
 
   const handleUndo = () => {
     game.current.undo();
-    game.current.undo();
+    if (!game.current.isGameOver()) game.current.undo();
     setFen(game.current.fen()); // 다시 그려지게
   };
 
@@ -160,7 +161,7 @@ function VsCom() {
       if (game.current.isDraw()) {
         return "1/2-1/2";
       }
-      if (game.current.turn() === "w") {
+      if (game.current.turn() === "b") {
         return "1-0";
       } else {
         return "0-1";
@@ -188,10 +189,9 @@ function VsCom() {
   }
 
   function saveLog() {
-    const pgn = game.current.pgn({ newline: "\n" });
+    const pgn = game.current.pgn();
     savedGames.current.push(pgn);
-    localStorage.setItem("vsCom", JSON.stringify(savedGames));
-    console.log(pgn);
+    localStorage.setItem("vsCom", JSON.stringify(savedGames.current));
   }
 
   /** board 함수=============================================================================== */

@@ -1,4 +1,5 @@
 // server/server.ts
+import { Chess } from "chess.js";
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
@@ -13,6 +14,7 @@ const io = new Server(server, {
 
 const roomInfo: Record<string, string[]> = {}; // roomId -> socketId[]
 const roomPGN: Record<string, string> = {}; // roomId → pgn
+const game = new Chess();
 
 io.on("connection", (socket) => {
   console.log("🟢 연결됨:", socket.id);
@@ -55,6 +57,10 @@ io.on("connection", (socket) => {
 
   // 무르기 수락
   socket.on("undoAccept", (roomId) => {
+    game.loadPgn(roomPGN[roomId]);
+    game.undo();
+    game.undo();
+    roomPGN[roomId] = game.pgn();
     socket.to(roomId).emit("undoAccept");
   });
 
