@@ -16,11 +16,12 @@ function RoomList({ socket, onJoin }: RoomListProps) {
 
     socket.on("roomList", (roomList: string[]) => {
       setRooms(roomList);
+      clearSession(roomList);
     });
 
     socket.on("delete", (roomId: string) => {
-      const remainRooms = rooms.filter((room) => room !== roomId);
       sessionStorage.removeItem(`color-${roomId}`);
+      const remainRooms = rooms.filter((room) => room !== roomId);
       setRooms(remainRooms);
     });
 
@@ -28,6 +29,21 @@ function RoomList({ socket, onJoin }: RoomListProps) {
       socket.off("roomList");
     };
   }, []);
+
+  function clearSession(roomList: string[]) {
+    let roomSession = [];
+    for (let i = 0; i < sessionStorage.length; i++) {
+      if (sessionStorage.key(i) !== "fen") {
+        roomSession.push(sessionStorage.key(i)!);
+      }
+    }
+    for (const title of roomList) {
+      roomSession = roomSession.filter((key) => key !== `color-${title}`);
+    }
+    for (const key of roomSession) {
+      sessionStorage.removeItem(key);
+    }
+  }
 
   const createRoom = () => {
     if (newRoomName.trim()) {

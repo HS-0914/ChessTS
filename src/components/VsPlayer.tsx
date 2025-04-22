@@ -1,6 +1,6 @@
 import { Chessboard } from "react-chessboard";
 import { Chess, Color, Move } from "chess.js";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Piece,
   PromotionPieceOption,
@@ -31,8 +31,6 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   const [toSquare, setToSquare] = useState<Square | null>(null);
   const [focusSquare, setFocusSquare] = useState({});
   const [possibleSquares, setPossibleSquares] = useState({});
-  const [depth, setDepth] = useState(1);
-  const [maxThinkingTime, setMaxThinkingTime] = useState(1);
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
 
   const hasRun = useRef(false);
@@ -47,7 +45,6 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
     game.current.setHeader("Site", "ChessTS");
     game.current.setHeader("Date", getCurrentDate());
     game.current.setHeader("Round", `${savedGames.current.length + 1}`);
-    console.log(game.current.pgn());
   }, []);
 
   useEffect(() => {
@@ -74,14 +71,13 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
         }
       }
       try {
-        const move = game.current.move({
+        game.current.move({
           from: fromSquare,
           to: toSquare,
           promotion: "q",
         });
         setFen(game.current.fen());
-        console.log("move.san : ", move.san);
-        sendMove(move.san);
+        sendMove();
         checkWin();
       } catch (error) {
         console.log(error);
@@ -114,19 +110,16 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
     // color 확인
     socket.on("assignColor", (color: Color) => {
       if (myColor.current) return;
-      console.log("🎨 내 색:", color);
       myColor.current = color;
       sessionStorage.setItem(`color-${roomId}`, myColor.current);
-      myColor.current && myColor.current === "w"
-        ? game.current.setHeader("White", playerName.current)
-        : game.current.setHeader("Black", playerName.current);
+      console.log("🎨 내 색:", myColor.current);
     });
 
     // 상대 수 수신
-    socket.on("move", (san: string) => {
-      console.log("📩 상대 수 수신", san);
+    socket.on("move", (pgn: string) => {
+      console.log("📩 상대 수 수신", pgn);
       try {
-        game.current.move(san);
+        game.current.loadPgn(pgn);
         setFen(game.current.fen());
         checkWin();
       } catch (e) {
@@ -143,13 +136,19 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   }
 
   // 기물 이동 요청
-  function sendMove(san: string) {
+  function sendMove() {
+    setColorHearder();
     const pgn = game.current.pgn();
     socket.emit("move", {
       roomId: roomId,
-      san,
       pgn,
     });
+  }
+
+  function setColorHearder() {
+    myColor.current === "w"
+      ? game.current.setHeader("White", playerName.current)
+      : game.current.setHeader("Black", playerName.current);
   }
 
   // 방 나가기
@@ -160,36 +159,6 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   }
 
   /** 이벤트 처리 함수 =========================================================================== */
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.target.value);
-    // 로 if문 리팩로팅 가능?
-    const id: string = e.target.id;
-    if (id === "depth2" && value >= 1 && value <= 18) {
-      setDepth(value);
-    }
-    if (id === "thinkingTime2" && value >= 1 && value <= 100) {
-      setMaxThinkingTime(value);
-    }
-  };
-
-  const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
-    const max = Number(e.target.max);
-    const min = Number(e.target.min);
-    const value = Number(e.target.value);
-    const id: string = e.target.id;
-
-    // 공통 클램핑 로직
-    const clamped = Math.max(min, Math.min(value || min, max));
-
-    const setters: Record<string, (val: number) => void> = {
-      depth: setDepth,
-      thinkingTime: setMaxThinkingTime,
-    };
-    if (setters[id]) {
-      setters[id](clamped);
-    }
-  };
 
   const handleUndo = () => {
     // sendUndoReq();
@@ -213,7 +182,8 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
       if (game.current.isDraw()) {
         return "1/2-1/2";
       }
-      if (game.current.turn() === "w") {
+      if (game.current.turn() === "b") {
+        //
         return "1-0";
       } else {
         return "0-1";
@@ -262,14 +232,13 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
 
   function onPromotionPieceSelect(piece: PromotionPieceOption | undefined) {
     if (piece && fromSquare && toSquare) {
-      const move = game.current.move({
+      game.current.move({
         from: fromSquare,
         to: toSquare,
         promotion: piece[1].toLowerCase() ?? "q",
       });
       setFen(game.current.fen());
-      console.log("move.san : ", move.san);
-      sendMove(move.san);
+      sendMove();
       checkWin();
     }
     setShowPromotionDialog(false);
@@ -312,14 +281,6 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
       game.current.turn() === myColor.current &&
       piece.startsWith(myColor.current)
     );
-    /*
-    if (
-      (game.current.turn() === "b" && piece.startsWith("w")) ||
-      (game.current.turn() === "w" && piece.startsWith("b"))
-    )
-    return false;
-    return true;
-    */
   }
 
   function onMouseOverSquare(square: Square) {
@@ -343,8 +304,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
         promotion: piece[1].toLowerCase() ?? "q",
       });
       setFen(game.current.fen());
-      console.log("move.san : ", move.san);
-      sendMove(move.san);
+      sendMove();
       checkWin();
     } catch (error) {
       console.error(error);
@@ -371,7 +331,9 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
           onPromotionPieceSelect={onPromotionPieceSelect}
           showPromotionDialog={showPromotionDialog}
           promotionToSquare={toSquare}
-          boardOrientation={myColor.current === "w" ? "white" : "black"}
+          boardOrientation={
+            myColor.current === "w" || !myColor.current ? "white" : "black"
+          }
           customBoardStyle={{
             borderRadius: "4px",
             boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.5)",
@@ -388,15 +350,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
           <label htmlFor="depth" style={{ color: "#7a5c3b" }}>
             Depth:
           </label>
-          <input
-            type="number"
-            id="depth2"
-            value={depth}
-            min="1"
-            max="18"
-            onChange={handleChange}
-            onInput={handleInput}
-          />
+          <input type="number" id="depth2" defaultValue={1} min="1" max="18" />
           <button
             onClick={leaveRoom}
             className="bg-red-500 hover:bg-red-700 text-white text-md py-2 px-4 rounded-md"

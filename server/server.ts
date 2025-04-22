@@ -42,10 +42,10 @@ io.on("connection", (socket) => {
   });
 
   // 기물 움직이기
-  socket.on("move", ({ roomId, san, pgn }) => {
+  socket.on("move", ({ roomId, pgn }) => {
     roomPGN[roomId] = pgn; // 최신 pgn 저장
     console.log(roomPGN[roomId]);
-    socket.to(roomId).emit("move", san);
+    socket.to(roomId).emit("move", pgn);
   });
 
   // 방 나가기
@@ -56,10 +56,8 @@ io.on("connection", (socket) => {
       if (roomInfo[roomId].length === 0) {
         delete roomInfo[roomId]; // 방 완전히 삭제
         delete roomPGN[roomId]; // ✅ PGN도 함께 제거
-        console.log("roomInfo");
-        console.log(roomInfo);
-        console.log(roomPGN);
         socket.broadcast.emit("delete", roomId);
+        socket.emit("deleteColor", roomId);
       }
     }
   });
