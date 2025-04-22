@@ -17,8 +17,8 @@ function MyBoard() {
   const vsCom = useRef(<VsCom />);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:3000");
-    // const newSocket = io("http://192.168.0.20:3000");
+    // const newSocket = io("http://localhost:3000");
+    const newSocket = io("http://192.168.0.20:3000");
     setSocket(newSocket);
 
     newSocket.on("deleteColor", (roomId: string) => {
