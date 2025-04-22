@@ -19,10 +19,10 @@ io.on("connection", (socket) => {
 
   // 방 목록 가져오기
   socket.on("getRooms", () => {
-    const availableRooms = Object.keys(roomInfo);
-    // const availableRooms = Object.keys(roomInfo).filter(
-    //   (roomId) => roomInfo[roomId].length < 2
-    // );
+    // const availableRooms = Object.keys(roomInfo);
+    const availableRooms = Object.keys(roomInfo).filter(
+      (roomId) => roomInfo[roomId].length < 2
+    );
     socket.emit("roomList", availableRooms);
   });
 
@@ -46,6 +46,21 @@ io.on("connection", (socket) => {
     roomPGN[roomId] = pgn; // 최신 pgn 저장
     console.log(roomPGN[roomId]);
     socket.to(roomId).emit("move", pgn);
+  });
+
+  // 무르기 요청 → 상대에게 전달
+  socket.on("undoRequest", (roomId) => {
+    socket.to(roomId).emit("undoRequest");
+  });
+
+  // 무르기 수락
+  socket.on("undoAccept", (roomId) => {
+    socket.to(roomId).emit("undoAccept");
+  });
+
+  // 무르기 거절
+  socket.on("undoReject", (roomId) => {
+    socket.to(roomId).emit("undoReject");
   });
 
   // 방 나가기

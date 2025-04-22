@@ -32,6 +32,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   const [focusSquare, setFocusSquare] = useState({});
   const [possibleSquares, setPossibleSquares] = useState({});
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
+  const [undoing, setUndoing] = useState(false);
 
   const hasRun = useRef(false);
   useEffect(() => {
@@ -121,10 +122,38 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
       try {
         game.current.loadPgn(pgn);
         setFen(game.current.fen());
-        checkWin();
+        setTimeout(() => {
+          checkWin();
+        }, 500);
       } catch (e) {
         console.error("상대 수 에러", e);
       }
+    });
+
+    // 되돌리기 수신 시시
+    socket.on("undoRequest", () => {
+      const accept = confirm(
+        "상대가 되돌리기를 요청했습니다. 수락하시겠습니까?"
+      );
+      if (accept) {
+        socket.emit("undoAccept", roomId);
+        handleUndo(); // 본인도 즉시 되돌리기
+      } else {
+        socket.emit("undoReject", roomId);
+      }
+    });
+
+    // 되돌리기 수락
+    socket.on("undoAccept", () => {
+      handleUndo(); // 나도 되돌리기
+      setUndoing(false);
+      alert("상대가 되돌리기를 수락했습니다.");
+    });
+
+    // 되돌리기 거절
+    socket.on("undoReject", () => {
+      setUndoing(false);
+      alert("상대가 되돌리기를 거절했습니다.");
     });
 
     console.log("✅ 소켓 연결 완료");
@@ -160,8 +189,12 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
 
   /** 이벤트 처리 함수 =========================================================================== */
 
+  function sendUndoRequest() {
+    setUndoing(true);
+    socket.emit("undoRequest", roomId);
+  }
+
   const handleUndo = () => {
-    // sendUndoReq();
     game.current.undo();
     game.current.undo();
     setFen(game.current.fen()); // 다시 그려지게
@@ -183,7 +216,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
         return "1/2-1/2";
       }
       if (game.current.turn() === "b") {
-        //
+        // 수 두고 턴 넘어감
         return "1-0";
       } else {
         return "0-1";
@@ -208,7 +241,8 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   }
 
   function saveLog() {
-    const pgn = game.current.pgn({ newline: "\n" });
+    const pgn = game.current.pgn();
+    console.log("savedGames.current : ", savedGames.current);
     savedGames.current.push(pgn);
     localStorage.setItem("vsPlayer", JSON.stringify(savedGames));
     console.log(pgn);
@@ -217,7 +251,9 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   /** board 함수============================================================================= */
 
   function onSquareClick(square: Square, piece: Piece | undefined) {
-    if (game.current.turn() !== myColor.current) return;
+    console.log("undoing", undoing);
+
+    if (!undoing && game.current.turn() !== myColor.current) return;
     const colors: { [key: string]: { background: string } } = {};
     colors[square] = { background: "rgba(255, 255, 0, 0.4)" };
     if (piece && !fromSquare) {
@@ -277,7 +313,9 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   }
 
   function isDraggablePiece({ piece }: { piece: Piece }) {
+    console.log("undoing", undoing);
     return (
+      !undoing &&
       game.current.turn() === myColor.current &&
       piece.startsWith(myColor.current)
     );
@@ -347,22 +385,24 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
       {/* 컨트롤 패널 */}
       <div className="mt-6">
         <div className="flex justify-evenly">
-          <label htmlFor="depth" style={{ color: "#7a5c3b" }}>
-            Depth:
-          </label>
-          <input type="number" id="depth2" defaultValue={1} min="1" max="18" />
           <button
             onClick={leaveRoom}
             className="bg-red-500 hover:bg-red-700 text-white text-md py-2 px-4 rounded-md"
           >
             🔙 방 나가기
           </button>
-          <button
-            className="bg-amber-400 text-white text-md py-2 px-4 rounded-md hover:bg-amber-600"
-            onClick={handleUndo}
-          >
-            <span>되돌리기</span>
-          </button>
+          {!undoing ? (
+            <button
+              className="bg-amber-400 text-white text-md py-2 px-4 rounded-md hover:bg-amber-600"
+              onClick={sendUndoRequest}
+            >
+              <span>되돌리기</span>
+            </button>
+          ) : (
+            <button className="bg-amber-600 text-white text-md py-2 px-4 rounded-md hover:bg-amber-600">
+              <span>되돌리기 중</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
