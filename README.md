@@ -10,7 +10,7 @@
 
 - chess-api.com 과의 API 통신
 - Depth, Thinking Time 조정
-- 체스.js 기반 룰 적용
+- Chess.js 기반 룰 적용
 
 ### ✅ 사용자 간 1:1 대전 (vsPlayer)
 
