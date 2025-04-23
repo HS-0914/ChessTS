@@ -1,8 +1,6 @@
-# ♟️ ChessTS - React 기반 실시간 체스 웹앱
+# ♟️ ChessTS - 체스 게임 & 퍼즐 플레이 웹앱
 
 > **ChessTS**는 React + Vite 기반의 체스 프로젝트입니다.
-> API와의 대국, 사용자 간 1:1 대국, 퍼즐 도전, 게임 로그 확인 등 다양한 기능을 제공합니다.
-> Socket.io, Chess.js, react-chessboard 라이브러리를 기반으로 구현되어 있습니다.
 
 ---
 
@@ -79,3 +77,32 @@
 ---
 
 ## 🖼️ 주요 화면 구성
+
+- RandomBoard: 자동 플레이 데모 보드
+
+<img src="https://github.com/user-attachments/assets/f6f0a3c6-c3b3-4186-9fc8-d292e82ea8e0" width="400" />
+
+
+- MyBoard: 사용자 vs AI 대국, 1 vs 1 대국
+
+<img src="https://github.com/user-attachments/assets/d6ed6696-6759-4b8a-82a0-5634a615a897" width="400" />
+
+
+- MyBoard > LogViewer: 로그 확인
+
+![image](https://github.com/user-attachments/assets/e3e958c6-e4d1-4838-996f-897d32da6b70)
+
+<img src="https://github.com/user-attachments/assets/a201d47c-b32a-437b-ad1a-e3f8c309ff3d" width="400" />
+
+
+- PuzzleBoard: 체스 퍼즐 풀이
+
+<img src="https://github.com/user-attachments/assets/3344a66a-86ce-41af-9a62-77b2c603287b" width="400" />
+
+- 프로모션 기물 선택 (♕ ♖ ♗ ♘)
+
+<img src="https://github.com/user-attachments/assets/cf506394-51c9-4182-b206-102976673274" width="400" />
+
+
+
+
