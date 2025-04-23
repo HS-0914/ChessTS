@@ -17,8 +17,6 @@ function MyBoard() {
   const vsCom = useRef(<VsCom />);
 
   useEffect(() => {
-    // const newSocket = io("http://localhost:3000");
-    // const newSocket = io("http://192.168.0.20:3000");
     const newSocket = io(
       "https://port-0-chessts-m9t6pjrte98fea57.sel4.cloudtype.app"
     );
