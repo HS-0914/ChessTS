@@ -41,6 +41,9 @@ io.on("connection", (socket) => {
       console.log(roomPGN[roomId]);
       socket.emit("initGame", roomPGN[roomId]);
     }
+    if (roomInfo[roomId].length == 2) {
+      socket.broadcast.emit("delete", roomId);
+    }
   });
 
   // 기물 움직이기
