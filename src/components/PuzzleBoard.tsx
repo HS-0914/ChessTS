@@ -45,6 +45,7 @@ function PuzzleBoard() {
         });
         checkMove(move.san);
         setPuzzleFen(game.current.fen());
+        playMoveSound();
       } catch (error) {
         console.log(error);
       } finally {
@@ -117,6 +118,12 @@ function PuzzleBoard() {
     };
   }
 
+  function playMoveSound() {
+    const audio = new Audio(`${import.meta.env.BASE_URL}move.mp3`);
+    audio.volume = 0.8;
+    audio.play();
+  }
+
   function checkMove(san: string) {
     const game = getGame();
     if (san === answer[answerIndex.current]) {
@@ -127,6 +134,7 @@ function PuzzleBoard() {
       setTimeout(() => {
         game.move(answer[answerIndex.current++]);
         setPuzzleFen(game.fen());
+        playMoveSound();
       }, 1000);
     } else {
       alert("다시 생각해보세요!");
@@ -238,6 +246,7 @@ function PuzzleBoard() {
       });
       checkMove(move.san);
       setPuzzleFen(game.fen());
+      playMoveSound();
     } catch (error) {
       console.error(error);
     } finally {

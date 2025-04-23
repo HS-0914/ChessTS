@@ -26,6 +26,8 @@ function LogViewer() {
   const refreshView = () => {
     const pLogs = JSON.parse(localStorage.getItem("vsPlayer") ?? "[]");
     const cLogs = JSON.parse(localStorage.getItem("vsCom") ?? "[]");
+    console.log(pLogs);
+    console.log(cLogs);
     const logs = [...pLogs, ...cLogs];
     setGames(logs);
   };

@@ -67,6 +67,7 @@ function VsCom() {
           promotion: "q",
         });
         setFen(game.current.fen());
+        playMoveSound();
         checkWin();
       } catch (error) {
         console.log(error);
@@ -130,6 +131,7 @@ function VsCom() {
       const san = res.data.san;
       game.current.move(san);
       setFen(game.current.fen());
+      playMoveSound();
       const isEnd = checkGame();
       if (isEnd) {
         game.current.setHeader("Result", isEnd as string);
@@ -194,6 +196,13 @@ function VsCom() {
     localStorage.setItem("vsCom", JSON.stringify(savedGames.current));
   }
 
+  function playMoveSound() {
+    console.log(`${import.meta.env.BASE_URL}move.mp3`);
+    const audio = new Audio(`${import.meta.env.BASE_URL}move.mp3`);
+    audio.volume = 0.8;
+    audio.play();
+  }
+
   /** board 함수=============================================================================== */
 
   function onSquareClick(square: Square, piece: Piece | undefined) {
@@ -218,6 +227,7 @@ function VsCom() {
         promotion: piece[1].toLowerCase() ?? "q",
       });
       setFen(game.current.fen());
+      playMoveSound();
       checkWin();
     }
     setShowPromotionDialog(false);
@@ -281,6 +291,7 @@ function VsCom() {
         promotion: piece[1].toLowerCase() ?? "q",
       });
       setFen(game.current.fen());
+      playMoveSound();
       checkWin();
     } catch (error) {
       console.error(error);

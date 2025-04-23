@@ -79,6 +79,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
           promotion: "q",
         });
         setFen(game.current.fen());
+        playMoveSound();
         sendMove();
         checkWin();
       } catch (error) {
@@ -123,6 +124,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
       try {
         game.current.loadPgn(pgn);
         setFen(game.current.fen());
+        playMoveSound();
         setTimeout(() => {
           checkWin();
         }, 500);
@@ -255,6 +257,12 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
     localStorage.setItem("vsPlayer", JSON.stringify(savedGames.current));
   }
 
+  function playMoveSound() {
+    const audio = new Audio(`${import.meta.env.BASE_URL}move.mp3`);
+    audio.volume = 0.8;
+    audio.play();
+  }
+
   /** board 함수============================================================================= */
 
   function onSquareClick(square: Square, piece: Piece | undefined) {
@@ -279,6 +287,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
         promotion: piece[1].toLowerCase() ?? "q",
       });
       setFen(game.current.fen());
+      playMoveSound();
       sendMove();
       checkWin();
     }
@@ -346,6 +355,7 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
         promotion: piece[1].toLowerCase() ?? "q",
       });
       setFen(game.current.fen());
+      playMoveSound();
       sendMove();
       checkWin();
     } catch (error) {
