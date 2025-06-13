@@ -24,8 +24,13 @@ function LogViewer() {
   };
 
   const refreshView = () => {
-    const pLogs = JSON.parse(localStorage.getItem("vsPlayer") ?? "[]");
-    const cLogs = JSON.parse(localStorage.getItem("vsCom") ?? "[]");
+    const vsPlayerData = JSON.parse(localStorage.getItem("vsPlayer") ?? "{}");
+    const vsComData = JSON.parse(localStorage.getItem("vsCom") ?? "{}");
+
+    const pLogs = Array.isArray(vsPlayerData.current)
+      ? vsPlayerData.current
+      : [];
+    const cLogs = Array.isArray(vsComData.current) ? vsComData.current : [];
     console.log(pLogs);
     console.log(cLogs);
     const logs = [...pLogs, ...cLogs];

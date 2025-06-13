@@ -12,7 +12,6 @@
   font-weight: 400;
 
   /* color-scheme: light dark; 다크모드? */
-  background-color: var(--chess-brown);
 }
 
 body {
@@ -21,6 +20,7 @@ body {
   min-height: 100vh;
   /* display: flex;
   place-items: center; */
+  background-color: var(--chess-brown);
 }
 
 .board {

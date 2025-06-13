@@ -185,9 +185,11 @@ function VsPlayer({ socket, roomId, onLeave }: VsPlayerProps) {
   }
 
   function setColorHearder() {
-    myColor.current === "w"
-      ? game.current.setHeader("White", playerName.current)
-      : game.current.setHeader("Black", playerName.current);
+    if (myColor.current === "w") {
+      game.current.setHeader("White", playerName.current);
+    } else {
+      game.current.setHeader("Black", playerName.current);
+    }
   }
 
   // 방 나가기
