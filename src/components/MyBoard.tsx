@@ -18,7 +18,7 @@ function MyBoard() {
 
   useEffect(() => {
     const newSocket = io(
-      "https://port-0-chessts-m9t6pjrte98fea57.sel4.cloudtype.app"
+      "https://port-0-chessts-ma2r1orz081fbcd5.sel4.cloudtype.app/"
     );
     setSocket(newSocket);
 
